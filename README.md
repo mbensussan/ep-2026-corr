@@ -84,7 +84,6 @@ Dans Codespaces, l'enregistrement automatique sauvegarde vos fichiers dans votre
 2. Dans la zone de texte **Message** située en haut, écrivez obligatoirement une courte étiquette décrivant votre travail (par exemple : `Sujet 01 RLE terminé` ou `Avancement séance 1`).
 3. Cliquez sur le bouton bleu **Valider** (*Commit*). Si une fenêtre vous propose de « Indexer toutes les modifications et les valider directement », cliquez sur **Oui** (*Always* ou *Yes*).
 4. Le bouton bleu devient **Synchroniser les modifications** (*Sync Changes*) : cliquez dessus pour envoyer définitivement votre code sur GitHub.
-5. Si on vous demande si vous voulez activer l'option **Fetch**, refusez-là : c'est inutile ici et cela risque d'utiliser de la bande passante pour rien.
 
 > **Vérification :** Le chiffre bleu sur l'icône Contrôle de code source disparaît. Votre travail est en sécurité sur votre dépôt GitHub, même si vous fermez votre Chromebook !
 
