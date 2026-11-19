@@ -1,0 +1,258 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CONSTANTES POUR LA PAGE DE GARDE ET LA TAILLE DE POLICE DU CODE %%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand{\annee}{2026}
+\newcommand{\numsujet}{15}
+\newcommand{\taillecode}{\small}
+\newcommand{\interlignecode}{0.85} % ratio, 1.145 pour être identique au texte
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PRÉAMBULE AVEC IMPORTATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[a4paper,12pt]{article}
+\usepackage{../epnsi} % fichier epnsi.sty dans le dossier parent
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% CONTENU %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\pagegarde
+
+\consignes
+
+\textbf{Cadre}
+
+Un cabinet vétérinaire utilise une base de données pour assurer le suivi et la
+gestion des clients et animaux qui y sont suivis, dans le but d’améliorer la
+qualité des soins et de fournir des services utiles, que ce soit pour le
+vétérinaire ou pour ses clients.
+
+\textbf{Objectif}
+
+La vaccination régulière des chats (une fois par an) étant importante mais
+souvent oubliée par les propriétaires, le vétérinaire souhaiterait pouvoir
+envoyer des messages de rappel de vaccination par SMS, deux mois avant
+l’échéance (la date à laquelle la vaccination devrait avoir lieu). Il dispose
+pour cela d’une plateforme d’envoi de SMS, mais il est nécessaire de préparer
+les données et les messages à envoyer.
+
+\textbf{Description de la base de données}
+
+Le logiciel mis en œuvre par le cabinet utilise 3 tables pour enregistrer les
+animaux, leur propriétaire et les consultations.
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.95\linewidth]{./images/diagramme_bdd.png}
+    \caption*{Schéma de la base de données}
+    \vspace{3mm}
+    \includegraphics[width=0.95\linewidth]{./images/extrait_bdd.png}
+    \caption*{Extraits de la base de données}
+\end{figure}
+
+Le système de gestion de base de données utilisé est SQLite, et il est possible
+d’interagir avec la base de données en utilisant le module \verb|sqlite|,
+disponible dans la bibliothèque standard de Python.
+
+\textbf{Rappels techniques}
+
+La connexion à la base de données se fait en précisant l’emplacement du fichier
+de la base de données. Par exemple, si le fichier \verb|cabinet.sqlite| se
+trouve dans le répertoire courant, on écrit :
+
+\begin{verbatim}
+DB_PATH = "cabinet.sqlite"
+conn = sqlite3.connect(DB_PATH)   
+\end{verbatim}
+
+Une fois que l’on dispose d’une connexion (variable \verb|conn|), on utilise un
+curseur (variable \verb|cursor|) pour exécuter des requêtes sur la base de
+données et éventuellement récupérer les résultats de la requête.
+
+\begin{verbatim}
+cursor = conn.cursor()
+resultats = cursor.execute(
+    "SELECT id, nom FROM animal ORDER BY nom LIMIT 10;"
+)
+# resultats permet de récupérer les lignes de manière progressive, sous 
+# forme d'une liste itérable de tuples correspondant aux champs demandés
+# Pour accéder aux champs sélectionnés :
+for r in resultats:
+    # les valeurs renvoyées par le SELECT
+    # sont accessibles par leur position
+    print("id:", r[0], ", nom:", r[1])
+\end{verbatim}
+
+Lorsqu’un paramètre doit être donné dans une requête SQL, il est fourni sous
+forme d’un \verb|?| dans le texte de la requête SQL, et passé en argument à la
+méthode \verb|execute| sous forme d’un tuple (chaque \verb|?| correspond à un
+élément du tuple, dans l'ordre). Par exemple, pour récupérer les chats du
+propriétaire d’id \verb|2| :
+
+\begin{verbatim}
+resultat = cursor.execute(
+    """
+    SELECT nom FROM animal
+    WHERE espece = 'chat' AND id_proprietaire = ?;
+    """,
+    (2,)
+)   
+\end{verbatim}
+
+Les clauses de langage SQL à utiliser sont : \verb|SELECT|, \verb|FROM|,
+\verb|JOIN|, \verb|ON|, \verb|WHERE|, \verb|ORDER BY|.
+
+\textbf{Numéros de téléphone}
+
+La plateforme d’envoi de SMS requiert un numéro de téléphone au format
+06XXXXXXXX ou \newline 07XXXXXXXXX, 10 chiffres au total, sans espace, ni
+point, ni autre caractère. Malheureusement, les téléphones ont été enregistrés
+dans la base sans distinguer les téléphones mobiles des téléphones fixes, et en
+utilisant différents styles comme “(0)6 12 34 56 78” ou “01.23.45.67.89”.
+
+\textit{Rappel.} On peut utiliser la méthode \verb|isdigit| de la classe
+\verb|str| pour déterminer si un caractère est un chiffre. Par exemple :
+
+\begin{verbatim}
+>>> '2'.isdigit()
+True
+>>> 'C'.isdigit()
+False
+\end{verbatim}
+
+\begin{question}
+    Écrire une fonction python \verb|normalisation_tel| qui prend un numéro de
+    téléphone \verb|tel| de type \verb|str| en paramètre et qui renvoie le numéro
+    de téléphone nettoyé en ne gardant que les chiffres. Exemples :
+
+    \begin{verbatim}
+>>> normalisation_tel("(0)2 12 99 90 12")
+"0212999012"
+>>> normalisation_tel("0.6.12.99.90.12")
+"0612999012"
+>>> normalisation_tel("0-6-12-9-90-1")
+renvoie "06129901"   
+    \end{verbatim}
+    \vspace{-5mm}
+    Une fonction \verb|test_normalisation_tel| est fournie.
+\end{question}
+
+\appel
+
+\textbf{Validation des numéros de téléphone}
+
+La fonction \verb|validation_tel(tel)| prend en paramètre un numéro de
+téléphone nettoyé, et renvoie un booléen indiquant si ce numéro est un numéro
+de téléphone portable valide ou non.
+
+\begin{question}
+    Écrire un jeu de tests permettant de vérifier le bon fonctionnement de la
+    fonction.
+\end{question}
+
+\appel
+
+\textbf{Détermination de la liste des chats à vacciner}
+
+La vaccination se faisant tous les ans, le vétérinaire souhaite envoyer trois
+rappels aux propriétaires. Chaque rappel sera donc envoyé aux propriétaires des
+chats ayant été vaccinés pour la \textbf{dernière} fois dans l’intervalle
+J -- 13 mois à J -- 10 mois.
+
+Pour cela, on commencera par déterminer quels chats ont été vaccinés il y a
+moins de 13 mois, à l’aide de la fonction
+\verb|consultation_vaccination_chat(date)|.
+
+Puis à l’aide de la fonction \verb|derniere_vaccination(consultations)|, on
+déterminera la date de dernière vaccination de ces chats.
+
+Enfin, dans la dernière étape du projet, se fera le filtrage des chats ayant été vaccinés pour la
+\textbf{dernière} fois il y a plus de 10 mois.
+
+\textbf{Interrogation de la base de données}
+
+Pour interroger la base de données, on utilise la fonction
+\verb|consultation_vaccination_-| \verb|chat(date)| qui doit récupérer toutes
+les consultations de motif vaccination des chats (espece : chat) du cabinet,
+pour des dates supérieures à une date, date, exprimée au format AAAAMMJJ (ce
+format permet de comparer des dates en utilisant l’ordre alphabétique).
+
+\newpage
+
+On souhaite récupérer les champs suivants :
+
+\begin{itemize}
+    \item id de l’animal ;
+    \item nom de l’animal ;
+    \item telephone du propriétaire ;
+    \item date de la consultation.
+\end{itemize}
+
+triés par le champ id d’animal puis date de consultation croissants.
+
+\begin{question}
+    En vous inspirant de la fonction
+    \verb|proprietaires_animaux_nes_apres(date)|, écri-re la fonction
+    \verb|consultation_vaccination_chat(date)|.
+
+    Des tests sont fournis dans la fonction
+    \verb|test_consultation_vaccination_chat|, vo-tre fonction doit les passer.
+\end{question}
+
+\appel
+
+\textbf{Détermination de la date de dernière vaccination}
+
+Pour déterminer la date de dernière vaccination, on utilise la fonction
+\verb|derniere_vaccination| qui prend en paramètre une liste de consultations
+avec les champs précédents (id de l’animal, nom de l’animal, id\_proprietaire de
+l’animal, date de la consultation). Elle renvoie un dictionnaire associant
+comme clef l’id de chaque chat avec les informations de sa \textbf{dernière}
+(plus récente) consultation.
+
+On donne par exemple ci-dessous la liste des consultations associées à Plume et
+Gollum.
+
+\begin{verbatim}
+consultations = [
+    (16,  'Plume', '0.6.36.96.89.83', '20241024'),
+    (16,  'Plume', '0.6.36.96.89.83', '20251125'),
+    (17, 'Gollum', '0.6.36.96.89.83', '20250113') 
+]   
+\end{verbatim}
+
+La dernière consultation de Plume est le 20251125, et pour Gollum, c’est le
+20250113 donc l'appel \verb|derniere_vaccination(consulations)| (où
+\verb|consultations| est la liste précédente) \newline doit renvoyer le
+dictionnaire suivant :
+
+\begin{verbatim}
+{
+    16: (16,  'Plume', '0.6.36.96.89.83', '20251125'),
+    17: (17, 'Gollum', '0.6.36.96.89.83', '20250113')
+}  
+\end{verbatim}
+
+\begin{question}
+    Cependant, la fonction ne produit pas les résultats attendus : les tests
+    fournis dans la fonction \verb|test_derniere_vaccination| échouent.
+    Identifier le problème rencontré, puis corriger cette fonction pour qu’elle
+    passe les tests avec succès.
+\end{question}
+
+\appel
+
+\section*{\centering Description du dossier}
+
+Le dossier fourni au candidat sur l’ordinateur comporte les éléments suivants :
+
+\begin{itemize}
+    \item une version PDF de l’énoncé ;
+    \item un code source de départ \verb|veto.py| ;
+    \item une base de données \verb|cabinet.sqlite|.
+\end{itemize}
+
+\section*{Préparation de l'environnement}
+
+Pour faire fonctionner le code fourni dans le dossier, les bibliothèques
+suivantes doivent être présentes : \verb|sqlite3|.
+
+\end{document}
